@@ -1,1 +1,38 @@
-# spark
+package exercise
+
+import com.typesafe.config.ConfigFactory
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+  * example of hive sql
+  */
+object RevPerDepartmentWithhiveSql {
+  def main(args: Array[String]): Unit = {
+    val props = ConfigFactory.load()
+    val conf = new SparkConf().
+      setAppName("Rev Per Dept With Hive SQL")
+      .setMaster(props.getConfig(args(0)).getString("executionMode"))
+    val sc = new SparkContext(conf)
+    val sqlContext = new HiveContext(sc)
+
+    val inputPath = args(1)
+    val outputPath = args(2)
+
+    val fs :FileSystem = FileSystem.get(sc.hadoopConfiguration)
+    val op = new Path(outputPath)
+    if(!fs.exists(new Path(inputPath))){
+      println("Invalid input path")
+    }
+
+    if(fs.exists(op)){
+      fs.delete(op, true)
+    }
+
+    sqlContext.sql("use sarang")
+    sqlContext.sql("select d.department_name,o.order_date,sum(oi.order_item_subtotal) from orders o, order_items oi, products p, categories c, " +
+                   "departments d where o.order_id = oi.order_item_order_id and oi.order_item_product_id=p.product_id and p.product_category_id=c.category_id "+
+                   "and c.category_department_id=d.department_id group by o.order_date,d.department_name order by d.department_name,o.order_date").rdd.saveAsTextFile(outputPath)
+  }
+}
