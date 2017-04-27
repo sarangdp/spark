@@ -1,0 +1,40 @@
+package exercise
+
+import com.typesafe.config.ConfigFactory
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.spark.{SparkConf, SparkContext}
+
+object BadRecordsWithAccumulators {
+  def main(args: Array[String]): Unit = {
+    val props = ConfigFactory.load()
+    val conf = new SparkConf().
+      setAppName("Bad Records With Accumulators")
+      .setMaster(props.getConfig(args(0)).getString("executionMode"))
+    val sc = new SparkContext(conf)
+
+    val inputPath = args(1)
+    val outputPath = args(2)
+
+    val fs :FileSystem = FileSystem.get(sc.hadoopConfiguration)
+    val op = new Path(outputPath)
+    if(!fs.exists(new Path(inputPath))){
+      println("Invalid input path")
+    }
+
+    if(fs.exists(op)){
+      fs.delete(op, true)
+    }
+
+    val badProductsAccumulator = sc.accumulator(0, "Bad Products")
+    val products = sc.textFile(inputPath+"/products")
+    val productsFiltered = products.filter(rec => {
+      val r = rec.split(",")
+      if(r(4)== "") {
+        badProductsAccumulator+=1
+        false
+      } else true
+    })
+
+    productsFiltered.saveAsTextFile(outputPath)
+  }
+}
