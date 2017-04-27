@@ -1,0 +1,35 @@
+# create departments.json
+{"department_id":2, "department_name":"Fitness"}
+{"department_id":3, "department_name":"Footwear"}
+{"department_id":4, "department_name":"Apparel"}
+{"department_id":5, "department_name":"Golf"}
+{"department_id":6, "department_name":"Outdoors"}
+{"department_id":7, "department_name":"Fan Shop"}
+{"department_id":8, "department_name":"TESTING"}
+{"department_id":8000, "department_name":"TESTING"}
+
+#copy to hadoop
+hadoop fs -put departments.json /user/sarangdp/data/
+
+#initialize SQLContext
+val sqlc = new org.apache.spark.sql.SQLContext(sc)
+import sqlc.implicits._
+
+#read json
+val deptJson = sqlc.jsonFile("/user/sarangdp/data/departments.json")
+
+#register the table and select the data
+deptJson.registerTempTable("dept")
+sqlc.sql("select * from dept").collect.foreach(println)
+
+[2,Fitness]
+[3,Footwear]
+[4,Apparel]
+[5,Golf]
+[6,Outdoors]
+[7,Fan Shop]
+[8,TESTING]
+
+#write dataRDD as json
+val deptJson = sqlc.sql("select * from dept")
+deptJson.toJSON.saveAsTextFile("/user/sarangdp/data/output/json")
