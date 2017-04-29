@@ -42,3 +42,8 @@ val custTotal = custOrders.join(orderItems).map(rec => (rec._2._1, rec._2._2)).r
 val topCust = custTotal.reduce((rec1, rec2) => {
  if (rec1._2 >= rec2._2) rec1 else rec2
 })
+
+#Using hive query
+ select c.customer_id,o.order_date,sum(oi.order_item_subtotal)/count(oi.order_item_id) 
+from customers c join orders o on c.customer_id = o.order_customer_id join order_items oi on o.order_id =oi.order_item_order_id 
+group by  c.customer_id,o.order_date
