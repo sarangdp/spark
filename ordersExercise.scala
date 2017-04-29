@@ -37,5 +37,11 @@ case class Orders(
   val sqlc = new org.apache.spark.sql.SQLContext(sc)  
   import sqlc.implicits._
   
-  val orders = sc.textFile("/user/sarangdp/data/retail_db/orders").map(rec => rec.split(","))
-  val ordersItems = sc.textFile("/user/sarangdp/data/retail_db/order_items").map(rec => rec.split(","))
+  val orders = sc.textFile("/user/sarangdp/data/retail_db/orders").map(rec => rec.split(",")).map(rec => Orders(rec(0).toInt,rec(1),rec(2).toInt,rec(3))).toDF
+ val ordersItems = sc.textFile("/user/sarangdp/data/retail_db/order_items").map(rec => rec.split(",")).
+                          map(rec=> OrderItems(rec(0).toInt, rec(1).toInt,rec(2).toInt,rec(3).toInt,rec(4).toFloat,rec(5).toFloat)).toDF
+
+orders.registerTempTable("orders")
+ordersItems.registerTempTable("orderItems")
+sqlc.sql("select o.order_date,sum(oi.order_item_subtotal),count(distinct o.order_id) from orders o "+
+        " join orderItems oi on o.order_id = oi.order_item_order_id group by o.order_date order by o.order_date").foreach(println)
