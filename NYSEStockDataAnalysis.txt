@@ -1,0 +1,37 @@
+# spark - Get top N stocks by volume for each day 
+#read the nyse_2013.csv file
+#create tuple of day and whole record
+
+val nyseData= sc.textFile("/user/sarangdp/data/nyse/nyse_2013.csv").map(rec=> (rec.split(",")(1).split("-")(0).toInt, rec))
+#Group the data using group by key
+
+val groupData = nyseData.groupByKey()
+
+#define a function which takes array of records and sort them based on their volume in descending order
+
+def topNStockRecords(rec:(Int, Iterable[String]), topN:Int):Iterable[String] ={
+     rec._2.toList.sortBy(k=> -k.split(",")(6).toInt).take(topN)
+}
+
+#sort the data by day and call the above function.Use flatmap to see indivisual rows
+val sortedData = groupData.sortByKey().flatMap(rec => topNStockRecords(rec,2))
+                    sortedData.saveAsTextFile("/user/sarangdp/data/output/nyseOutput")
+                    
+ #using hive context
+ #Create table in hive and load the data
+  create table NYSEData(
+             stock_name String,
+             trade_date String,
+             open Float,
+             high Float,
+             low Float,
+             close Float,
+             volume Int)
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+    
+ 
+ load data local inpath '/home/sarangdp/data/nyse/nyse_2013.csv' into table NYSEData;
+
+
+
+ 
