@@ -32,6 +32,13 @@ val sortedData = groupData.sortByKey().flatMap(rec => topNStockRecords(rec,2))
  
  load data local inpath '/home/sarangdp/data/nyse/nyse_2013.csv' into table NYSEData;
 
+sqlContext.sql("use sarang")
+
+val getDayMonth = sqlContext.sql("select stock_name,trade_date,month(from_unixtime(unix_timestamp(trade_date,'dd-MMM-yyyy'),'yyyy-MM-dd')) as month,day(from_unixtime(unix_timestamp(trade_date,'dd-MMM-yyyy'),'yyyy-MM-dd')) as day,volume from NYSEData")
+
+getDayMonth.registerTempTable("nyseDataNew")
+
+
 
 
  
