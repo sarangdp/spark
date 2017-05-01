@@ -34,11 +34,13 @@ val sortedData = groupData.sortByKey().flatMap(rec => topNStockRecords(rec,2))
 
 sqlContext.sql("use sarang")
 
-val getDayMonth = sqlContext.sql("select stock_name,trade_date,month(from_unixtime(unix_timestamp(trade_date,'dd-MMM-yyyy'),'yyyy-MM-dd')) as month,day(from_unixtime(unix_timestamp(trade_date,'dd-MMM-yyyy'),'yyyy-MM-dd')) as day,volume from NYSEData")
+val getDayMonth = sqlContext.sql("select stock_name,trade_date,month(from_unixtime(unix_timestamp(trade_date,'dd-MMM-yyyy'), "+
+       "'yyyy-MM-dd')) as month,day(from_unixtime(unix_timestamp(trade_date,'dd-MMM-yyyy'),'yyyy-MM-dd')) as day,volume from NYSEData")
 
 getDayMonth.registerTempTable("nyseDataNew")
 
-sqlContext.sql("select * from (select n.*, dense_rank() over (partition by month order by volume desc) dr from nyseDataNew n distribute by month) q where q.dr<3 order by month").foreach(println)
+sqlContext.sql("select * from (select n.*, dense_rank() over (partition by month order by volume desc) dr from nyseDataNew n "+
+      "distribute by month) q where q.dr<3 order by month").foreach(println)
 
 
 
