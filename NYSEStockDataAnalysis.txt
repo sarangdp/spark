@@ -38,6 +38,8 @@ val getDayMonth = sqlContext.sql("select stock_name,trade_date,month(from_unixti
 
 getDayMonth.registerTempTable("nyseDataNew")
 
+sqlContext.sql("select * from (select n.*, dense_rank() over (partition by month order by volume desc) dr from nyseDataNew n distribute by month) q where q.dr<3 order by month").foreach(println)
+
 
 
 
