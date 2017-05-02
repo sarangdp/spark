@@ -1,0 +1,35 @@
+# spark
+#Problem statement - Get top 2 candidates for maharashtra state
+#using core spark API
+#Removed the header
+val data = sc.textFile("/user/sarangdp/data/ls2014.tsv").mapPartitionsWithIndex((idx,itr) => if (idx==0) itr.drop(1) else itr)
+
+#FilterData for MH state
+val mahaData = data.filter(rec=> rec.split("\t")(0)=="Maharashtra")
+
+#select the constituency as key and apply groupBykey
+val mahaDataGroupBy = mahaData.map(rec =>(rec.split("\t")(1) ,rec)).groupByKey()
+
+#Create function who take list of the records and take top 2 records
+def getTopNCandidates(rec:(String, Iterable[String]), topN:Int):Iterable[String]={
+  rec._2.toList.sortBy(k=> -k.split("\t")(10).toInt).take(2)
+}
+
+val topNmahaData = mahaDataGroupBy.flatMap(rec => getTopNCandidates(rec,2))
+
+
+#using spark SQL
+val sqlc = new org.apache.spark.sql.SQLContext(sc)
+ import sqlc.implicits._
+ 
+#Create Case class
+case class MahaData(constituency:String,candidate_name:String, partyname:String, totalVotes:Int)
+
+#remove header and Filter the data 
+val mahaDataRDD = sc.textFile("/user/sarangdp/data/ls2014.tsv").mapPartitionsWithIndex((idx,itr) => if (idx==0) itr.drop(1) else itr).filter(rec=> rec.split("\t")(0)== "Maharashtra")
+
+#Create Data frames
+ val mahaDataDF = mahaDataRDD.map(rec => {
+     val r = rec.split("\t")
+     MahaData(r(1), r(2), r(6), r(10).toInt)
+  }).toDF
