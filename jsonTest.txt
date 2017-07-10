@@ -16,7 +16,7 @@ val sqlc = new org.apache.spark.sql.SQLContext(sc)
 import sqlc.implicits._
 
 #read json
-val deptJson = sqlc.jsonFile("/user/sarangdp/data/departments.json")
+val deptJson = sqlc.read.json("/user/sarangdp/data/departments.json")
 
 #register the table and select the data
 deptJson.registerTempTable("dept")
