@@ -6,6 +6,8 @@ import org.apache.spark.streaming._
 
 /**
   * Created by Sarang on 07-08-2017.
+  * spark-submit --class KafkaInt.SparkStreamingWordCount --master yarn sparkstream_2.10-1.0.jar
+  * nc -lk 15151
   */
 object SparkStreamingWordCount {
 
