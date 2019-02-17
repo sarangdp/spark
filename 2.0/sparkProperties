@@ -1,0 +1,23 @@
+Yarn - 5 worker nodes with each 24GB memory and 12 core CPU
+Total Capacity of Cluster - 120GB memory and 60 cores
+means total no of executors are 60 with 2GB memory each
+
+2GB Memory- 1.5 Executor memory + 500 cache
+
+spark-submit --master yarn \
+  --deploy-mode client \
+  --conf spark.ui.port=12901 \
+  --conf spark.dynamicAllocation.enabled=false \
+  --num-executors 10 \
+  --executor-memory 1536M \
+  --executor-cores 2 \
+  src/main/python/wordCount.py yarn-client /public/randomtextWriter /user/training/bootcamp/pyspark/workdcount
+
+
+
+Container - Spark - Executor
+            ME - Mapreduce job
+            
+            YARN -setting - min-max memory (hard limit)
+                            min-max cores
+            
